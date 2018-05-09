@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Mail;
+use App\Notifications\ResetPassword;
 
 class UsersController extends Controller
 {
@@ -92,13 +93,13 @@ class UsersController extends Controller
     {
         $view = 'users.confirm';
         $data = compact('user');
-        $from = 'Hank@123.com';
+
         $to = $user->email;
-        $name = 'Hank';
+
         $subject = "感谢注册 Sample 应用！请确认你的邮箱。";
 
-        Mail::send($view, $data, function ($message) use ($from, $name, $to, $subject) {
-            $message->from($from, $name)->to($to)->subject($subject);
+        Mail::send($view, $data, function ($message) use ( $to, $subject) {
+            $message->to($to)->subject($subject);
         });
     }
 
@@ -112,5 +113,10 @@ class UsersController extends Controller
         Auth::login($user);
         session()->flash('success', '恭喜你，激活成功！');
         return redirect()->route('users.show', [$user]);
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
     }
 }
